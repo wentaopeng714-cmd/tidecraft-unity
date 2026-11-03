@@ -1,0 +1,86 @@
+{
+  "success": true,
+  "command": "command build",
+  "data": {
+    "command": "build",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "buildId": "build_b0afce7ae4f5",
+      "result": "Failed",
+      "platform": "Android",
+      "outputPath": "/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft-Android-0.1.apk",
+      "totalSizeBytes": 0,
+      "buildTimeMs": 21679,
+      "buildStartedAt": "2026-11-02T16:42:02.1979710Z",
+      "buildEndedAt": "2026-11-02T16:42:23.8771670Z",
+      "totalWarnings": 0,
+      "totalErrors": 1,
+      "buildSteps": [
+        {
+          "name": "Build player",
+          "durationMs": 20940,
+          "depth": 0,
+          "messages": []
+        },
+        {
+          "name": "Preprocess Player",
+          "durationMs": 378,
+          "depth": 1,
+          "messages": [
+            {
+              "type": "Log",
+              "content": "Default Volume Profile has been modified to ensure all overrides are present. This is required to avoid missing overrides at runtime which can lead to unexpected rendering issues. Please save these changes to avoid this message in the future."
+            },
+            {
+              "type": "Log",
+              "content": "1 URP assets included in build\n- Mobile_RPAsset - Assets/Settings/Mobile_RPAsset.asset\n\t - Mobile_Renderer - Assets/Settings/Mobile_Renderer.asset - UnityEngine.Rendering.Universal.UniversalRendererData\n"
+            },
+            {
+              "type": "Log",
+              "content": "[TestRunBuilder] Creating new file 'Assets/Resources/PerformanceTestRunInfo.json' (2155 bytes)"
+            },
+            {
+              "type": "Log",
+              "content": "[TestRunBuilder] Creating new file 'Assets/Resources/PerformanceTestRunSettings.json' (23 bytes)"
+            },
+            {
+              "type": "Log",
+              "content": "Pipeline: this build does not include the Pipeline (Project Settings > Pipeline > Runtime), so its assemblies and settings are excluded from it."
+            }
+          ]
+        },
+        {
+          "name": "Back up scenes",
+          "durationMs": 50,
+          "depth": 1,
+          "messages": []
+        },
+        {
+          "name": "Prepare For Build",
+          "durationMs": 20156,
+          "depth": 1,
+          "messages": [
+            {
+              "type": "Error",
+              "content": "UnityException: Android NDK not found\nAndroid NDK not found or invalid. Please, fix it in Edit / Unity -> Preferences -> External Tools"
+            }
+          ]
+        }
+      ],
+      "errors": [
+        {
+          "message": "UnityException: Android NDK not found\nAndroid NDK not found or invalid. Please, fix it in Edit / Unity -> Preferences -> External Tools"
+        }
+      ],
+      "warnings": []
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

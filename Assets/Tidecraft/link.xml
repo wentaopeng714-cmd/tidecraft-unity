@@ -1,0 +1,4 @@
+<linker>
+  <!-- The optional inspection rig is activated by reflection after Package Manager installs it. -->
+  <assembly fullname="Unity.Cinemachine" ignoreIfMissing="1" preserve="all" />
+</linker>

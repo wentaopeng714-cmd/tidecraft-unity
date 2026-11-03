@@ -1,0 +1,17 @@
+Unity 6000.3.24f1 · Editor Play Mode · 2026-11-03
+Liveness: Time.frameCount 613 → 619, job wait state=met, elapsed=111ms.
+Console immediately after checks: compilationFailed=false, consoleErrors=0, consoleWarnings=0.
+Cinemachine: UsingCinemachine=true.
+
+PASS 8/8
+- screen-picked continuous wall
+- tower preview / stamp / wall-end snap
+- overlap rejected
+- unfinished picked ditch remains dry
+- picked ditch connects to sea
+- undo and redo restore topology
+- gesture cancellation restores state
+- toolbar blocks world input
+
+The checks use the actual camera, screen projection, SandWorld.Pick and SandApp pointer/tool entry points.
+Touch gestures have been implemented, but this does not constitute physical phone testing.

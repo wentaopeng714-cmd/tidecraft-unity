@@ -1,0 +1,12 @@
+PASS 11/11
+- sealed basin stays dry
+- open sea seeded from boundary
+- unfinished channel stays dry
+- completed channel fills basin
+- sand bank disconnects basin
+- height snapshot restores connectivity
+- built walls block water
+- wall removal reconnects water
+- edge brushes remain in bounds
+- reset is deterministic
+- hydrology preserves terrain
