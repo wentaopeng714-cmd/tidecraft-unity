@@ -43,10 +43,14 @@ namespace Tidecraft
         static void EnsureGame() { if (UnityEngine.Object.FindFirstObjectByType<SandApp>() == null) new GameObject("Tidecraft prototype").AddComponent<SandApp>(); }
         void Awake()
         {
-            Application.targetFrameRate = 60; Screen.sleepTimeout = SleepTimeout.NeverSleep;
-            Screen.orientation = ScreenOrientation.LandscapeLeft;
-            Screen.autorotateToLandscapeLeft = Screen.autorotateToLandscapeRight = true;
-            Screen.autorotateToPortrait = Screen.autorotateToPortraitUpsideDown = false;
+            Application.targetFrameRate = Application.platform == RuntimePlatform.WebGLPlayer ? -1 : 60;
+            if (Application.platform != RuntimePlatform.WebGLPlayer)
+            {
+                Screen.sleepTimeout = SleepTimeout.NeverSleep;
+                Screen.orientation = ScreenOrientation.LandscapeLeft;
+                Screen.autorotateToLandscapeLeft = Screen.autorotateToLandscapeRight = true;
+                Screen.autorotateToPortrait = Screen.autorotateToPortraitUpsideDown = false;
+            }
             Model = new SandModel(); Model.Reset();
             if (!sandShader) sandShader = Shader.Find("Tidecraft/Sand");
             if (!waterShader) waterShader = Shader.Find("Tidecraft/Water");
@@ -68,6 +72,7 @@ namespace Tidecraft
             Hud = gameObject.AddComponent<SandHUD>(); Hud.Initialize(this, interfaceFont);
             gameObject.AddComponent<SandInput>().Initialize(this);
             Ready = true; SetTool(SandTool.Wall);
+            WebBridge.Report(WallCount, TowerCount, Model.WetAt(1, -1), true);
             Debug.Log("[Tidecraft] Ready: drag walls, stamp towers, dig a channel from the dry basin to the ocean.");
         }
         void SetLighting()
@@ -248,6 +253,7 @@ namespace Tidecraft
             bool wet = Model.WetAt(1, -1);
             if (wet && !basinConnected && Audio) { Audio.Flow(); Hud?.Message("引水成功！海水正沿着你挖出的沟渠进入凹池"); }
             basinConnected = wet;
+            WebBridge.Report(WallCount, TowerCount, wet, Ready);
         }
         bool EraseAt(Vector3 p)
         {
@@ -283,15 +289,35 @@ namespace Tidecraft
         }
         public void Save()
         {
-            try { if (drawing) PointerEnd(false); string temp = SavePath + ".tmp"; File.WriteAllText(temp, JsonUtility.ToJson(Snapshot())); File.Copy(temp, SavePath, true); File.Delete(temp); Hud.Message("作品已保存在这台设备上"); Audio.Click(); }
+            try
+            {
+                if (drawing) PointerEnd(false);
+                string json = JsonUtility.ToJson(Snapshot());
+#if UNITY_WEBGL && !UNITY_EDITOR
+                PlayerPrefs.SetString("TidecraftBeach.v1", json); PlayerPrefs.Save();
+#else
+                string temp = SavePath + ".tmp"; File.WriteAllText(temp, json); File.Copy(temp, SavePath, true); File.Delete(temp);
+#endif
+                Hud.Message("作品已保存在这台设备上"); Audio.Click();
+            }
             catch (Exception e) { Hud.Message("保存失败：" + e.Message); Debug.LogException(e); }
         }
         public void Load()
         {
-            if (!File.Exists(SavePath)) { Hud.Message("还没有存档，先点保存"); return; }
+#if UNITY_WEBGL && !UNITY_EDITOR
+            bool exists = PlayerPrefs.HasKey("TidecraftBeach.v1");
+#else
+            bool exists = File.Exists(SavePath);
+#endif
+            if (!exists) { Hud.Message("还没有存档，先点保存"); return; }
             try
             {
-                var data = JsonUtility.FromJson<SandSave>(File.ReadAllText(SavePath)); Validate(data); PushUndo(Snapshot()); ApplySave(data); Hud.Message("已读取作品，仍可撤销");
+#if UNITY_WEBGL && !UNITY_EDITOR
+                string json = PlayerPrefs.GetString("TidecraftBeach.v1");
+#else
+                string json = File.ReadAllText(SavePath);
+#endif
+                var data = JsonUtility.FromJson<SandSave>(json); Validate(data); PushUndo(Snapshot()); ApplySave(data); Hud.Message("已读取作品，仍可撤销");
             }
             catch (Exception e) { Hud.Message("存档无法读取，当前作品已保留"); Debug.LogWarning("[Tidecraft] Load rejected: " + e.Message); }
         }
