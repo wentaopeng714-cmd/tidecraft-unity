@@ -14,6 +14,10 @@ namespace Tidecraft.Editor
         public static void Configure()
         {
             var target = NamedBuildTarget.WebGL;
+            PlayerSettings.SplashScreen.show = false;
+            PlayerSettings.SplashScreen.showUnityLogo = false;
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+            PlayerSettings.defaultScreenWidth = 720; PlayerSettings.defaultScreenHeight = 1280;
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             // Static hosting needs no custom Content-Encoding headers with Unity's fallback.
             PlayerSettings.WebGL.decompressionFallback = true;

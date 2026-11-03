@@ -8,6 +8,11 @@ namespace Tidecraft
     public sealed class SandHUD : MonoBehaviour
     {
         SandApp app; TMP_FontAsset font; RectTransform safe;
+        UnityEngine.UI.CanvasScaler scaler;
+        RectTransform brand, actions, tray, opt, hintPanel;
+        UnityEngine.UI.GridLayoutGroup actionGrid;
+        TextMeshProUGUI titleText, subtitleText;
+        float layoutWidth, layoutHeight;
         readonly List<UnityEngine.UI.Button> tools = new List<UnityEngine.UI.Button>();
         readonly List<RaycastResult> hits = new List<RaycastResult>();
         TextMeshProUGUI hint, optionLabel, counts, soundText;
@@ -25,22 +30,22 @@ namespace Tidecraft
             }
             var canvasObject = new GameObject("Touch interface", typeof(RectTransform));
             var canvas = canvasObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = app.View.Camera; canvas.planeDistance = 1;
-            var scaler = canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>(); scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1440, 810); scaler.matchWidthOrHeight = .5f;
+            scaler = canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>(); scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = Screen.height > Screen.width ? new Vector2(720, 1280) : new Vector2(1440, 810); scaler.matchWidthOrHeight = Screen.height > Screen.width ? 0 : .5f;
             canvasObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             foreach (var es in FindObjectsByType<EventSystem>(FindObjectsSortMode.None)) es.gameObject.SetActive(false);
             var events = new GameObject("Touch UI events"); events.AddComponent<EventSystem>(); events.AddComponent<InputSystemUIInputModule>().AssignDefaultActions();
             safe = Rect("Safe area", canvasObject.transform); ApplySafeArea();
-            var title = Panel("Brand", safe, new Vector2(0, 1), new Vector2(22, -20), new Vector2(300, 82), Palette.Alpha(Palette.Cream, .94f));
-            Label("沙岸工坊", title, new Vector2(20, -6), new Vector2(260, 46), 27, Palette.Ink, TextAlignmentOptions.TopLeft, FontStyles.Bold);
-            Label("T I D E C R A F T   /   触控原型", title, new Vector2(20, -53), new Vector2(270, 22), 12, Palette.Ink);
-            var actions = Rect("Actions", safe); actions.anchorMin = actions.anchorMax = actions.pivot = new Vector2(1, 1); actions.anchoredPosition = new Vector2(-22, -20); actions.sizeDelta = new Vector2(680, 56);
-            var row = actions.gameObject.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>(); row.spacing = 8; row.childControlWidth = row.childControlHeight = true; row.childForceExpandWidth = row.childForceExpandHeight = true;
+            brand = Panel("Brand", safe, new Vector2(0, 1), new Vector2(22, -20), new Vector2(300, 82), Palette.Alpha(Palette.Cream, .94f));
+            titleText = Label("沙岸工坊", brand, new Vector2(20, -6), new Vector2(260, 46), 27, Palette.Ink, TextAlignmentOptions.TopLeft, FontStyles.Bold);
+            subtitleText = Label("T I D E C R A F T   /   触控原型", brand, new Vector2(20, -53), new Vector2(270, 22), 12, Palette.Ink);
+            actions = Rect("Actions", safe); actions.anchorMin = actions.anchorMax = actions.pivot = new Vector2(1, 1); actions.anchoredPosition = new Vector2(-22, -20); actions.sizeDelta = new Vector2(680, 56);
+            actionGrid = actions.gameObject.AddComponent<UnityEngine.UI.GridLayoutGroup>(); actionGrid.constraint = UnityEngine.UI.GridLayoutGroup.Constraint.FixedColumnCount;
             undo = Button("撤销", actions, app.Undo); redo = Button("重做", actions, app.Redo);
             Button("保存", actions, app.Save); Button("读取", actions, app.Load); Button("视角", actions, app.View.Home);
             var sound = Button("声音 开", actions, () => { app.Audio.Toggle(); soundText.text = app.Audio.Muted ? "声音 关" : "声音 开"; }); soundText = sound.GetComponentInChildren<TextMeshProUGUI>();
             Button("重置", actions, ConfirmReset);
-            var tray = Panel("Tool tray", safe, new Vector2(.5f, 0), new Vector2(0, 18), new Vector2(844, 114), Palette.Alpha(Palette.Ink, .96f));
+            tray = Panel("Tool tray", safe, new Vector2(.5f, 0), new Vector2(0, 18), new Vector2(844, 114), Palette.Alpha(Palette.Ink, .96f));
             var toolRow = Rect("Tools", tray); toolRow.anchorMin = Vector2.zero; toolRow.anchorMax = Vector2.one; toolRow.offsetMin = new Vector2(10, 10); toolRow.offsetMax = new Vector2(-10, -10);
             var layout = toolRow.gameObject.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>(); layout.spacing = 8; layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandWidth = layout.childForceExpandHeight = true;
             string[] labels = { "画城墙", "放塔楼", "挖水沟", "堆沙地", "移除" };
@@ -52,14 +57,14 @@ namespace Tidecraft
                 var r = icon.rectTransform; r.anchorMin = r.anchorMax = new Vector2(.5f, .7f); r.sizeDelta = new Vector2(40, 40); icon.sprite = MakeIcon(i); icon.color = Palette.Ink; icon.raycastTarget = false;
                 tools.Add(btn);
             }
-            var opt = Panel("Tool option", safe, new Vector2(1, 0), new Vector2(-22, 24), new Vector2(208, 96), Palette.Alpha(Palette.Cream, .96f));
+            opt = Panel("Tool option", safe, new Vector2(1, 0), new Vector2(-22, 24), new Vector2(208, 96), Palette.Alpha(Palette.Cream, .96f));
             var optionButton = opt.gameObject.AddComponent<UnityEngine.UI.Button>(); optionButton.targetGraphic = opt.GetComponent<UnityEngine.UI.Image>(); optionButton.onClick.AddListener(() => { if (app.Tool == SandTool.Tower) app.CycleTower(); else app.CycleBrush(); });
             optionLabel = Label("", opt, new Vector2(12, -15), new Vector2(184, 70), 19, Palette.Ink, TextAlignmentOptions.Center);
-            var hintPanel = Panel("Hint", safe, new Vector2(.5f, 0), new Vector2(0, 146), new Vector2(860, 45), Palette.Alpha(Palette.Cream, .93f));
+            hintPanel = Panel("Hint", safe, new Vector2(.5f, 0), new Vector2(0, 146), new Vector2(860, 45), Palette.Alpha(Palette.Cream, .93f));
             hintPanel.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
             hint = Label("", hintPanel, new Vector2(16, -7), new Vector2(828, 32), 18, Palette.Ink, TextAlignmentOptions.Center);
             counts = Label("", safe, new Vector2(22, -112), new Vector2(440, 34), 17, Palette.Ink);
-            BuildModal(); Refresh();
+            BuildModal(); ApplyLayout(); Refresh();
         }
         RectTransform Rect(string name, Transform parent)
         {
@@ -89,10 +94,10 @@ namespace Tidecraft
         }
         void BuildModal()
         {
-            var r = Panel("Reset confirmation", safe, new Vector2(.5f, .5f), Vector2.zero, new Vector2(590, 260), Palette.Cream); modal = r.gameObject;
+            var r = Panel("Reset confirmation", safe, new Vector2(.5f, .5f), Vector2.zero, new Vector2(590, 300), Palette.Cream); modal = r.gameObject;
             Label("重新铺一片沙滩？", r, new Vector2(28, -26), new Vector2(530, 42), 28, Palette.Ink, TextAlignmentOptions.Center, FontStyles.Bold);
             Label("当前建造会清空。重置后仍可撤销。", r, new Vector2(28, -90), new Vector2(530, 40), 20, Palette.Ink, TextAlignmentOptions.Center);
-            var row = Rect("Choices", r); row.anchorMin = new Vector2(0, 0); row.anchorMax = new Vector2(1, 0); row.pivot = new Vector2(.5f, 0); row.offsetMin = new Vector2(28, 26); row.offsetMax = new Vector2(-28, 90);
+            var row = Rect("Choices", r); row.anchorMin = new Vector2(0, 0); row.anchorMax = new Vector2(1, 0); row.pivot = new Vector2(.5f, 0); row.offsetMin = new Vector2(28, 26); row.offsetMax = new Vector2(-28, 122);
             var layout = row.gameObject.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>(); layout.spacing = 14; layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandWidth = layout.childForceExpandHeight = true;
             Button("继续建造", row, () => modal.SetActive(false)); Button("重置沙滩", row, () => { modal.SetActive(false); app.ResetBeach(); }); modal.SetActive(false);
         }
@@ -123,7 +128,67 @@ namespace Tidecraft
             safe.anchorMax = new Vector2(area.xMax / Mathf.Max(1, Screen.width), area.yMax / Mathf.Max(1, Screen.height)); safe.offsetMin = safe.offsetMax = Vector2.zero;
             lastSafe = area; lastWidth = Screen.width; lastHeight = Screen.height;
         }
-        void Update() { if (safe && (Screen.safeArea != lastSafe || Screen.width != lastWidth || Screen.height != lastHeight)) ApplySafeArea(); }
+        void Update()
+        {
+            if (safe && (Screen.safeArea != lastSafe || Screen.width != lastWidth || Screen.height != lastHeight)) { ApplySafeArea(); ApplyLayout(); }
+        }
+        void LateUpdate()
+        {
+            if (safe && actions && (Mathf.Abs(safe.rect.width - layoutWidth) > .5f || Mathf.Abs(safe.rect.height - layoutHeight) > .5f)) ApplyLayout();
+        }
+        static void Place(RectTransform r, Vector2 anchor, Vector2 position, Vector2 size)
+        {
+            r.anchorMin = r.anchorMax = r.pivot = anchor; r.anchoredPosition = position; r.sizeDelta = size;
+        }
+        static void StretchText(TextMeshProUGUI t, Vector2 inset)
+        {
+            t.rectTransform.anchorMin = Vector2.zero; t.rectTransform.anchorMax = Vector2.one;
+            t.rectTransform.offsetMin = inset; t.rectTransform.offsetMax = -inset;
+        }
+        void ApplyLayout()
+        {
+            if (!actions || !hint || !counts) return;
+            bool portrait = Screen.height > Screen.width;
+            scaler.referenceResolution = portrait ? new Vector2(720, 1280) : new Vector2(1440, 810);
+            scaler.matchWidthOrHeight = portrait ? 0 : .5f;
+            float w = safe.rect.width > 0 ? safe.rect.width : (portrait ? 720 : 1440);
+            layoutWidth = safe.rect.width; layoutHeight = safe.rect.height;
+            if (portrait)
+            {
+                Place(brand, new Vector2(0,1), new Vector2(16,-18), new Vector2(w-32,90));
+                Place(titleText.rectTransform, new Vector2(0,1), new Vector2(18,-7), new Vector2(w-68,48)); titleText.fontSize=32;
+                Place(subtitleText.rectTransform, new Vector2(0,1), new Vector2(18,-58), new Vector2(w-68,24)); subtitleText.fontSize=14;
+                Place(counts.rectTransform, new Vector2(0,1), new Vector2(20,-117), new Vector2(w-40,32)); counts.fontSize=22;
+                Place(actions, new Vector2(0,1), new Vector2(20,-158), new Vector2(w-40,186));
+                actionGrid.constraintCount=4; actionGrid.spacing=new Vector2(10,10); actionGrid.cellSize=new Vector2((w-70)/4,88);
+                opt.SetParent(actions,false); opt.SetAsLastSibling();
+                Place(tray, new Vector2(.5f,0), new Vector2(0,18), new Vector2(w-32,160));
+                Place(hintPanel, new Vector2(.5f,0), new Vector2(0,194), new Vector2(w-40,100));
+                hint.fontSize=22; hint.textWrappingMode=TextWrappingModes.Normal;
+            }
+            else
+            {
+                Place(brand,new Vector2(0,1),new Vector2(22,-20),new Vector2(300,82));
+                Place(titleText.rectTransform,new Vector2(0,1),new Vector2(20,-6),new Vector2(260,46)); titleText.fontSize=27;
+                Place(subtitleText.rectTransform,new Vector2(0,1),new Vector2(20,-53),new Vector2(270,22)); subtitleText.fontSize=12;
+                Place(counts.rectTransform,new Vector2(0,1),new Vector2(22,-112),new Vector2(440,34)); counts.fontSize=17;
+                Place(actions,new Vector2(1,1),new Vector2(-22,-20),new Vector2(680,56));
+                opt.SetParent(safe,false); Place(opt,new Vector2(1,0),new Vector2(-22,24),new Vector2(208,96));
+                actionGrid.constraintCount=7; actionGrid.spacing=new Vector2(8,8); actionGrid.cellSize=new Vector2((680-48)/7f,56);
+                Place(tray,new Vector2(.5f,0),new Vector2(0,18),new Vector2(844,114));
+                Place(hintPanel,new Vector2(.5f,0),new Vector2(0,146),new Vector2(860,45));
+                hint.fontSize=18; hint.textWrappingMode=TextWrappingModes.NoWrap;
+            }
+            StretchText(hint,new Vector2(12,8)); StretchText(optionLabel,new Vector2(6,8));
+            optionLabel.fontSize=portrait?20:19; optionLabel.textWrappingMode=TextWrappingModes.Normal;
+            foreach (Transform child in actions) if(child.gameObject!=opt.gameObject) child.GetComponentInChildren<TextMeshProUGUI>().fontSize=portrait?24:18;
+            foreach (var tool in tools)
+            {
+                tool.GetComponentInChildren<TextMeshProUGUI>().fontSize=portrait?23:19;
+                tool.transform.Find("Tool icon").GetComponent<RectTransform>().sizeDelta=Vector2.one*(portrait?48:40);
+            }
+            Debug.Log("[Tidecraft] UI layout: "+(portrait?"portrait":"landscape")+" / "+Screen.width+"x"+Screen.height);
+        }
         static Sprite MakeIcon(int type)
         {
             var texture = new Texture2D(64, 64, TextureFormat.RGBA32, false); var data = new Color32[64 * 64];

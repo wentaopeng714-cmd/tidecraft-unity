@@ -47,8 +47,8 @@ namespace Tidecraft
             if (Application.platform != RuntimePlatform.WebGLPlayer)
             {
                 Screen.sleepTimeout = SleepTimeout.NeverSleep;
-                Screen.orientation = ScreenOrientation.LandscapeLeft;
-                Screen.autorotateToLandscapeLeft = Screen.autorotateToLandscapeRight = true;
+                Screen.orientation = ScreenOrientation.Portrait;
+                Screen.autorotateToLandscapeLeft = Screen.autorotateToLandscapeRight = false;
                 Screen.autorotateToPortrait = Screen.autorotateToPortraitUpsideDown = false;
             }
             Model = new SandModel(); Model.Reset();

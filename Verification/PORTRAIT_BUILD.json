@@ -1,0 +1,25 @@
+{
+  "buildId": "build_7ecfc3ca254a",
+  "status": "completed",
+  "result": "Succeeded",
+  "platform": "WebGL",
+  "totalSizeBytes": 13227521,
+  "buildTimeMs": 45576,
+  "totalWarnings": 0,
+  "totalErrors": 0,
+  "splashScreenEnabled": false,
+  "unityLogoEnabled": false,
+  "defaultOrientation": "Portrait",
+  "viewportChecks": [
+    "390x844",
+    "375x667"
+  ],
+  "checks": [
+    "wall count 1→2",
+    "tower count 2→3",
+    "basin dry→wet after digging to sea",
+    "undo water→dry; redo→wet",
+    "reset modal fits; cancel keeps work",
+    "browser errors/warnings: none"
+  ]
+}
