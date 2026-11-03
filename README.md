@@ -4,6 +4,12 @@ Unity 手机竖屏沙滩建造原型源码。围绕参考视频中的连续画�
 
 ## 在线试玩
 
+[免登录直接试玩](https://wentaopeng714-cmd.github.io/tidecraft-unity/)
+
+[点击下载 Loopit 网页运行 ZIP](https://github.com/wentaopeng714-cmd/tidecraft-unity/releases/download/v0.3.1-loopit/tidecraft-loopit.zip)
+
+Loopit 包的根目录是 `index.html`，包含全部网页运行文件及 `source/Unity/` 源码。按 HTML5 网页游戏导入并保留资源相对位置。已经验证解压后的静态托管与 iframe 运行；尚未在 Loopit 导入器内实测，需要平台允许 WebAssembly 和 WebGL 2。
+
 [打开沙岸工坊在线版](https://tidecraft-sand-play.wentaopeng714.chatgpt.site)，使用当前 ChatGPT 账号登录后会自动加载，无需再点开始。在线版已适配手机竖屏，启动 Unity 标志已关闭，并加入海浪防守挑战。网页启动、三项核心玩法、撤销和跨刷新存档均已实测；具体记录见 Verification/WEB_PREVIEW.md。
 
 ## GitHub 与网页文件
