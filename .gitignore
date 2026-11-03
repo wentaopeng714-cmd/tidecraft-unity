@@ -24,3 +24,7 @@ Assets/Resources/PerformanceTestRunSettings.json.meta
 .utmp/
 .gradle/
 .cxx/
+
+# Keep the deployable browser preview with the source.
+!WebPreview/Build/
+!WebPreview/Build/**

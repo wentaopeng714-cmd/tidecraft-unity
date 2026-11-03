@@ -1,0 +1,6 @@
+{
+  "loaderUrl": "Build/unity-web-waves.loader.js",
+  "dataUrl": "Build/unity-web-waves.data.unityweb",
+  "frameworkUrl": "Build/unity-web-waves.framework.js.unityweb",
+  "codeUrl": "Build/unity-web-waves.wasm.unityweb"
+}

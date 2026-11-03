@@ -4,7 +4,15 @@ Unity 手机竖屏沙滩建造原型源码。围绕参考视频中的连续画�
 
 ## 在线试玩
 
-[打开沙岸工坊在线版](https://tidecraft-sand-play.wentaopeng714.chatgpt.site)，使用当前 ChatGPT 账号登录后点“开始试玩”。在线版已适配手机竖屏，启动 Unity 标志已关闭，并加入海浪防守挑战。网页启动、三项核心玩法、撤销和跨刷新存档均已实测；具体记录见 Verification/WEB_PREVIEW.md。
+[打开沙岸工坊在线版](https://tidecraft-sand-play.wentaopeng714.chatgpt.site)，使用当前 ChatGPT 账号登录后会自动加载，无需再点开始。在线版已适配手机竖屏，启动 Unity 标志已关闭，并加入海浪防守挑战。网页启动、三项核心玩法、撤销和跨刷新存档均已实测；具体记录见 Verification/WEB_PREVIEW.md。
+
+## GitHub 与网页文件
+
+GitHub 仓库：[wentaopeng714-cmd/tidecraft-unity](https://github.com/wentaopeng714-cmd/tidecraft-unity)。
+
+`WebPreview/` 包含与在线版一致的网页启动器和 Unity WebGL 运行文件，可独立部署到静态网站。打开链接后自动加载，首次交互后按浏览器规则播放声音。
+
+本地预览：在工程根目录运行 `python3 -m http.server 8000 --directory WebPreview`，然后打开 `http://localhost:8000`。
 
 ## 海浪防守
 
