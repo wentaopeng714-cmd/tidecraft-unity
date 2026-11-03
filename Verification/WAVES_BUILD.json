@@ -1,0 +1,11 @@
+{
+  "buildId": "build_e8525f9187ef",
+  "result": "Succeeded",
+  "platform": "WebGL",
+  "buildTimeMs": 57219,
+  "totalSizeBytes": 13633031,
+  "totalWarnings": 0,
+  "totalErrors": 0,
+  "modelChecks": "9/9 passed",
+  "playChecks": "8/8 passed"
+}

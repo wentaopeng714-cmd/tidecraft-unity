@@ -16,6 +16,7 @@ namespace Tidecraft.Editor
             var target = NamedBuildTarget.WebGL;
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.SplashScreen.showUnityLogo = false;
+            PlayerSettings.bundleVersion = "0.3.0";
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.defaultScreenWidth = 720; PlayerSettings.defaultScreenHeight = 1280;
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;

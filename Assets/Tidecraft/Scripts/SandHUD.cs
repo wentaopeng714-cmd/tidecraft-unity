@@ -16,6 +16,10 @@ namespace Tidecraft
         readonly List<UnityEngine.UI.Button> tools = new List<UnityEngine.UI.Button>();
         readonly List<RaycastResult> hits = new List<RaycastResult>();
         TextMeshProUGUI hint, optionLabel, counts, soundText;
+        TextMeshProUGUI waveStatus, waveDetail, waveAction;
+        RectTransform healthBack, healthFill;
+        UnityEngine.UI.Button waveButton;
+        float visibleHealth = 1;
         UnityEngine.UI.Button undo, redo;
         GameObject modal; Rect lastSafe; int lastWidth, lastHeight;
         public bool ModalOpen => modal != null && modal.activeSelf;
@@ -61,8 +65,19 @@ namespace Tidecraft
             var optionButton = opt.gameObject.AddComponent<UnityEngine.UI.Button>(); optionButton.targetGraphic = opt.GetComponent<UnityEngine.UI.Image>(); optionButton.onClick.AddListener(() => { if (app.Tool == SandTool.Tower) app.CycleTower(); else app.CycleBrush(); });
             optionLabel = Label("", opt, new Vector2(12, -15), new Vector2(184, 70), 19, Palette.Ink, TextAlignmentOptions.Center);
             hintPanel = Panel("Hint", safe, new Vector2(.5f, 0), new Vector2(0, 146), new Vector2(860, 45), Palette.Alpha(Palette.Cream, .93f));
-            hintPanel.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
+            hintPanel.GetComponent<UnityEngine.UI.Image>().raycastTarget = true;
             hint = Label("", hintPanel, new Vector2(16, -7), new Vector2(828, 32), 18, Palette.Ink, TextAlignmentOptions.Center);
+            waveStatus = Label("", hintPanel, new Vector2(14,-8), new Vector2(450,46), 22, Palette.Ink, TextAlignmentOptions.TopLeft, FontStyles.Bold);
+            waveStatus.textWrappingMode = TextWrappingModes.Normal;
+            waveDetail = Label("", hintPanel, new Vector2(14,-82), new Vector2(450,30), 19, Palette.Ink);
+            healthBack = Panel("Flag health background",hintPanel,new Vector2(0,1),new Vector2(14,-60),new Vector2(450,12),Palette.Ink);
+            healthBack.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            healthFill = Panel("Flag health",healthBack,Vector2.zero,Vector2.zero,Vector2.zero,Palette.Shallow);
+            healthFill.anchorMin=Vector2.zero; healthFill.anchorMax=Vector2.one; healthFill.offsetMin=healthFill.offsetMax=Vector2.zero;
+            healthFill.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            waveButton = Button("迎战海浪", hintPanel, app.Waves.Action); waveAction=waveButton.GetComponentInChildren<TextMeshProUGUI>();
+            var waveColors=waveButton.colors; waveColors.normalColor=waveColors.selectedColor=Palette.Shallow; waveButton.colors=waveColors;
+            waveButton.GetComponent<UnityEngine.UI.Image>().color=Palette.Shallow;
             counts = Label("", safe, new Vector2(22, -112), new Vector2(440, 34), 17, Palette.Ink);
             BuildModal(); ApplyLayout(); Refresh();
         }
@@ -112,9 +127,17 @@ namespace Tidecraft
                 tools[i].GetComponent<UnityEngine.UI.Image>().color = c.normalColor;
             }
             if (undo) undo.interactable = app.CanUndo; if (redo) redo.interactable = app.CanRedo;
-            counts.text = "沙堡 " + app.TowerCount + "    /    墙段 " + app.WallCount + "    /    自由建造";
+            counts.text = "沙堡 " + app.TowerCount + "    /    墙段 " + app.WallCount + "    /    筑墙防浪";
             string[] styles = { "圆形塔楼", "方形塔楼", "高塔" };
             optionLabel.text = app.Tool == SandTool.Tower ? styles[app.TowerStyle] + "\n点击切换模具" : "笔刷 " + (app.BrushRadius < .8f ? "小" : app.BrushRadius < 1.1f ? "中" : "大") + "\n点击切换大小";
+            RefreshWaves();
+        }
+        public void RefreshWaves()
+        {
+            if (!waveStatus || !app.Waves) return;
+            waveStatus.text=app.Waves.StatusLabel; waveAction.text=app.Waves.ActionLabel;
+            waveStatus.color=app.Waves.Phase==WavePhase.Lost || app.Waves.Phase==WavePhase.Warning ? Palette.Coral : Palette.Ink;
+            waveDetail.text=app.Waves.Phase==WavePhase.Build ? "先连好墙线，再点击迎战海浪" : "挡浪 " + app.Waves.DefenceHits + " 次  /  冲毁 " + app.Waves.BrokenDefences + " 处";
         }
         public bool IsOverUI(Vector2 screen)
         {
@@ -131,6 +154,12 @@ namespace Tidecraft
         void Update()
         {
             if (safe && (Screen.safeArea != lastSafe || Screen.width != lastWidth || Screen.height != lastHeight)) { ApplySafeArea(); ApplyLayout(); }
+            if(healthFill && app.Waves)
+            {
+                visibleHealth=Mathf.Lerp(visibleHealth,app.Waves.GoalHealth/100,1-Mathf.Exp(-Time.unscaledDeltaTime*10));
+                healthFill.anchorMax=new Vector2(Mathf.Clamp01(visibleHealth),1);
+                healthFill.GetComponent<UnityEngine.UI.Image>().color=visibleHealth>.4f?Palette.Shallow:Palette.Coral;
+            }
         }
         void LateUpdate()
         {
@@ -163,7 +192,7 @@ namespace Tidecraft
                 actionGrid.constraintCount=4; actionGrid.spacing=new Vector2(10,10); actionGrid.cellSize=new Vector2((w-70)/4,88);
                 opt.SetParent(actions,false); opt.SetAsLastSibling();
                 Place(tray, new Vector2(.5f,0), new Vector2(0,18), new Vector2(w-32,160));
-                Place(hintPanel, new Vector2(.5f,0), new Vector2(0,194), new Vector2(w-40,100));
+                Place(hintPanel, new Vector2(.5f,0), new Vector2(0,194), new Vector2(w-40,200));
                 hint.fontSize=22; hint.textWrappingMode=TextWrappingModes.Normal;
             }
             else
@@ -176,10 +205,17 @@ namespace Tidecraft
                 opt.SetParent(safe,false); Place(opt,new Vector2(1,0),new Vector2(-22,24),new Vector2(208,96));
                 actionGrid.constraintCount=7; actionGrid.spacing=new Vector2(8,8); actionGrid.cellSize=new Vector2((680-48)/7f,56);
                 Place(tray,new Vector2(.5f,0),new Vector2(0,18),new Vector2(844,114));
-                Place(hintPanel,new Vector2(.5f,0),new Vector2(0,146),new Vector2(860,45));
+                Place(hintPanel,new Vector2(.5f,0),new Vector2(0,146),new Vector2(860,185));
                 hint.fontSize=18; hint.textWrappingMode=TextWrappingModes.NoWrap;
             }
-            StretchText(hint,new Vector2(12,8)); StretchText(optionLabel,new Vector2(6,8));
+            float panelWidth=hintPanel.sizeDelta.x;
+            Place(waveStatus.rectTransform,new Vector2(0,1),new Vector2(14,-8),new Vector2(panelWidth-216,46));
+            Place(healthBack,new Vector2(0,1),new Vector2(14,-60),new Vector2(panelWidth-216,12));
+            Place(waveDetail.rectTransform,new Vector2(0,1),new Vector2(14,-84),new Vector2(panelWidth-216,30));
+            Place(waveButton.GetComponent<RectTransform>(),new Vector2(1,1),new Vector2(-12,-12),new Vector2(174,100)); waveAction.fontSize=24;
+            hint.rectTransform.anchorMin=Vector2.zero; hint.rectTransform.anchorMax=new Vector2(1,0);
+            hint.rectTransform.offsetMin=new Vector2(12,8); hint.rectTransform.offsetMax=new Vector2(-12,72);
+            StretchText(optionLabel,new Vector2(6,8));
             optionLabel.fontSize=portrait?20:19; optionLabel.textWrappingMode=TextWrappingModes.Normal;
             foreach (Transform child in actions) if(child.gameObject!=opt.gameObject) child.GetComponentInChildren<TextMeshProUGUI>().fontSize=portrait?24:18;
             foreach (var tool in tools)

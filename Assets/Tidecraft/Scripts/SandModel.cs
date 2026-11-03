@@ -97,9 +97,9 @@ namespace Tidecraft
         static float Lerp(float a, float b, float t) => a + (b - a) * t;
         static float Smooth(float t) => t * t * (3 - 2 * t);
     }
-    [Serializable] public sealed class WallRecord { public List<Point> points = new List<Point>(); }
+    [Serializable] public sealed class WallRecord { public List<Point> points = new List<Point>(); public float health = 100; }
     [Serializable] public struct Point { public float x, z; public Point(float x, float z) { this.x = x; this.z = z; } }
-    [Serializable] public sealed class TowerRecord { public float x, z, yaw; public int style; }
+    [Serializable] public sealed class TowerRecord { public float x, z, yaw; public int style; public float health = 100; }
     [Serializable] public sealed class SandSave
     {
         public int version = 1;

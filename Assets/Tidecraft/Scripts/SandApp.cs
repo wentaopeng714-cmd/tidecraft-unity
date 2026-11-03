@@ -18,6 +18,7 @@ namespace Tidecraft
         public BeachCamera View { get; private set; }
         public SandHUD Hud { get; private set; }
         public SandAudio Audio { get; private set; }
+        public SandWaves Waves { get; private set; }
         public SandTool Tool { get; private set; } = SandTool.Wall;
         public float BrushRadius { get; private set; } = .85f;
         public int TowerStyle { get; private set; }
@@ -69,6 +70,8 @@ namespace Tidecraft
             towerMeshes = new[] { MeshFactory.Tower(0), MeshFactory.Tower(1), MeshFactory.Tower(2) };
             CreateCursor(); CreateDecor(); SeedCastle(); RebuildStructures();
             Audio = gameObject.AddComponent<SandAudio>(); Audio.Initialize();
+            Waves = new GameObject("Wave defence challenge").AddComponent<SandWaves>(); Waves.Initialize(this, sandMaterial);
+            RebuildStructures();
             Hud = gameObject.AddComponent<SandHUD>(); Hud.Initialize(this, interfaceFont);
             gameObject.AddComponent<SandInput>().Initialize(this);
             Ready = true; SetTool(SandTool.Wall);
@@ -138,6 +141,7 @@ namespace Tidecraft
         bool Pick(Vector2 screen, bool touch, out Vector3 point) => World.Pick(View.Camera, Aim(screen, touch), out point);
         public void PointerBegin(Vector2 screen, bool touch)
         {
+            if (Waves && !Waves.CanBuild) { Hud.Message("海浪来袭中，退潮后继续加固防线"); return; }
             if (Hud.ModalOpen || !Pick(screen, touch, out var p)) return;
             beforeStroke = Snapshot(); drawing = true; changed = false; hasPoint = false;
             if (Tool == SandTool.Wall) { activeWall = new WallRecord(); wallPreview.SetActive(true); }
@@ -185,7 +189,7 @@ namespace Tidecraft
         {
             if (!drawing) return;
             drawing = false;
-            if (cancel) { ApplySave(beforeStroke); }
+            if (cancel) { ApplySave(beforeStroke, false); }
             else
             {
                 if (Tool == SandTool.Tower && cursorValid) { towers.Add(new TowerRecord { x = cursorPoint.x, z = cursorPoint.z, style = TowerStyle }); changed = true; popNextTower = true; Audio.Stamp(); }
@@ -206,6 +210,7 @@ namespace Tidecraft
         bool CanTower(Vector3 p)
         {
             if (!Model.Contains(p.x, p.z, 1) || p.y < SandModel.Sea + .1f) return false;
+            if (Waves && Vector2.Distance(new Vector2(p.x, p.z), SandWaves.Goal) < 1.45f) return false;
             foreach (var t in towers) if (Vector2.Distance(new Vector2(t.x, t.z), new Vector2(p.x, p.z)) < 1.3f) return false;
             for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4; if (Model.Sample(p.x + Mathf.Cos(a) * .7f, p.z + Mathf.Sin(a) * .7f) < SandModel.Sea + .02f) return false; }
             return true;
@@ -234,15 +239,21 @@ namespace Tidecraft
                 var child = structures.GetChild(i); child.gameObject.SetActive(false);
                 if (child.name.StartsWith("Wall")) Destroy(child.GetComponent<MeshFilter>().sharedMesh); Destroy(child.gameObject);
             }
-            foreach (var w in walls) MeshObject("Wall", MeshFactory.Wall(w, Model), sandMaterial, structures);
+            foreach (var w in walls)
+            {
+                var go = MeshObject("Wall", MeshFactory.Wall(w, Model), sandMaterial, structures);
+                if (Waves) go.AddComponent<SandDefenseVisual>().Initialize(w, null, Waves.FoamMaterial, View.Camera);
+            }
             foreach (var t in towers)
             {
                 var go = MeshObject("Tower", towerMeshes[Mathf.Clamp(t.style, 0, 2)], sandMaterial, structures);
                 go.transform.position = new Vector3(t.x, Model.Sample(t.x, t.z), t.z); go.transform.rotation = Quaternion.Euler(0, t.yaw, 0);
                 if (popNextTower && t == towers[towers.Count - 1]) go.AddComponent<SandStamp>();
+                if (Waves) go.AddComponent<SandDefenseVisual>().Initialize(null, t, Waves.FoamMaterial, View.Camera);
             }
             popNextTower = false;
             RefreshHydrology();
+            Waves?.RebuildDefences();
         }
         public void RefreshHydrology()
         {
@@ -264,8 +275,8 @@ namespace Tidecraft
         SandSave Snapshot()
         {
             var save = new SandSave { heights = (float[])Model.heights.Clone() };
-            foreach (var w in walls) save.walls.Add(new WallRecord { points = new List<Point>(w.points) });
-            foreach (var t in towers) save.towers.Add(new TowerRecord { x = t.x, z = t.z, style = t.style, yaw = t.yaw }); return save;
+            foreach (var w in walls) save.walls.Add(new WallRecord { points = new List<Point>(w.points), health = w.health });
+            foreach (var t in towers) save.towers.Add(new TowerRecord { x = t.x, z = t.z, style = t.style, yaw = t.yaw, health = t.health }); return save;
         }
         void PushUndo(SandSave state) { undo.Add(state); if (undo.Count > 24) undo.RemoveAt(0); redo.Clear(); }
         public bool CanUndo => undo.Count > 0;
@@ -280,12 +291,17 @@ namespace Tidecraft
             if (drawing) PointerEnd(false); if (!CanRedo) return;
             undo.Add(Snapshot()); var last = redo[redo.Count - 1]; redo.RemoveAt(redo.Count - 1); ApplySave(last); Hud.Message("已重做");
         }
-        void ApplySave(SandSave save)
+        public SandSave CaptureBeach() => Snapshot();
+        public void RecordWaveUndo() { PushUndo(Snapshot()); Hud.Refresh(); }
+        public void RestoreDefenceCheckpoint(SandSave save) { PushUndo(Snapshot()); ApplySave(save); }
+        void ApplySave(SandSave save, bool resetChallenge = true)
         {
+            if (resetChallenge) Waves?.ResetChallenge();
             Model.Restore(save.heights); walls.Clear(); towers.Clear();
-            foreach (var w in save.walls) walls.Add(new WallRecord { points = new List<Point>(w.points) });
-            foreach (var t in save.towers) towers.Add(new TowerRecord { x = t.x, z = t.z, style = t.style, yaw = t.yaw });
+            foreach (var w in save.walls) walls.Add(new WallRecord { points = new List<Point>(w.points), health = w.health > 0 ? w.health : 100 });
+            foreach (var t in save.towers) towers.Add(new TowerRecord { x = t.x, z = t.z, style = t.style, yaw = t.yaw, health = t.health > 0 ? t.health : 100 });
             World.RebuildGround(); RebuildStructures(); World.ResetWater(); if (Hud) Hud.Refresh();
+            if (resetChallenge) Waves?.ResetChallenge();
         }
         public void Save()
         {
@@ -304,6 +320,7 @@ namespace Tidecraft
         }
         public void Load()
         {
+            if (drawing) PointerEnd(false);
 #if UNITY_WEBGL && !UNITY_EDITOR
             bool exists = PlayerPrefs.HasKey("TidecraftBeach.v1");
 #else
@@ -325,11 +342,11 @@ namespace Tidecraft
         {
             if (s == null || s.version != 1 || s.heights == null || s.heights.Length != SandModel.Size * SandModel.Size || s.walls == null || s.towers == null || s.walls.Count > 500 || s.towers.Count > 500) throw new ArgumentException("Invalid save");
             foreach (float h in s.heights) if (float.IsNaN(h) || float.IsInfinity(h) || h < -3 || h > 3) throw new ArgumentException("Invalid height");
-            foreach (var w in s.walls) { if (w == null || w.points == null || w.points.Count < 2 || w.points.Count > 2000) throw new ArgumentException("Invalid wall"); foreach (var p in w.points) CheckPoint(p.x, p.z); }
-            foreach (var t in s.towers) { if (t == null || t.style < 0 || t.style > 2 || float.IsNaN(t.yaw) || float.IsInfinity(t.yaw)) throw new ArgumentException("Invalid tower"); CheckPoint(t.x, t.z); }
+            foreach (var w in s.walls) { if (w == null || float.IsNaN(w.health) || float.IsInfinity(w.health) || w.health < 0 || w.health > 100 || w.points == null || w.points.Count < 2 || w.points.Count > 2000) throw new ArgumentException("Invalid wall"); foreach (var p in w.points) CheckPoint(p.x, p.z); }
+            foreach (var t in s.towers) { if (t == null || float.IsNaN(t.health) || float.IsInfinity(t.health) || t.health < 0 || t.health > 100 || t.style < 0 || t.style > 2 || float.IsNaN(t.yaw) || float.IsInfinity(t.yaw)) throw new ArgumentException("Invalid tower"); CheckPoint(t.x, t.z); }
         }
         static void CheckPoint(float x, float z) { if (float.IsNaN(x) || float.IsNaN(z) || float.IsInfinity(x) || float.IsInfinity(z) || Mathf.Abs(x) > 16 || Mathf.Abs(z) > 16) throw new ArgumentException("Invalid position"); }
-        public void ResetBeach() { if (drawing) PointerEnd(false); PushUndo(Snapshot()); Model.Reset(); walls.Clear(); towers.Clear(); basinConnected = false; World.RebuildGround(); RebuildStructures(); World.ResetWater(); Hud.Refresh(); Hud.Message("沙滩已清空，凹池已恢复 · 可撤销"); }
+        public void ResetBeach() { if (drawing) PointerEnd(false); PushUndo(Snapshot()); Waves?.ResetChallenge(); Model.Reset(); walls.Clear(); towers.Clear(); basinConnected = false; World.RebuildGround(); RebuildStructures(); World.ResetWater(); Hud.Refresh(); Hud.Message("沙滩已清空，凹池已恢复 · 可撤销"); }
         public void DemoChannel()
         {
             PushUndo(Snapshot());
