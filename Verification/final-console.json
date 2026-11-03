@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "command": "command console",
+  "data": {
+    "command": "console",
+    "parameters": {
+      "level": "error",
+      "tail": "12"
+    },
+    "result": {
+      "entries": [],
+      "cursor": 15,
+      "session": "b93e4a875850442cb71bc4989f38f25a",
+      "returned": 0,
+      "dropped": false,
+      "reset": false,
+      "counts": {
+        "error": 0,
+        "warn": 0,
+        "log": 1
+      },
+      "groundTruth": {
+        "sampledUtc": "2026-11-03T00:54:29.009523Z",
+        "ageMs": 168,
+        "compilationFailed": false,
+        "compiling": false,
+        "consoleErrors": 0,
+        "consoleWarnings": 0,
+        "consoleLogs": 1,
+        "seeded": true
+      }
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

@@ -9,7 +9,7 @@
 - 半条沟保持干燥、打通后水池连通、堆沙断开、城墙阻水与移除重连。
 - 撤销/重做、取消手势；本地保存/读取恢复现有作品。
 - 以实际渲染图检查配色、光照、轮廓、工具界面，修正顶点色和标题。
-- Android SDK/JDK 检查，补装 NDK r27c；最终包状态见 android-build.json。
+- Android ARM64 APK 构建成功，零错误/警告；完成 ZIP 完整性、包配置与签名校验，见 android-build.json、apk-badging.txt、apk-signature.txt。
 
 仍需实体手机验证：
 

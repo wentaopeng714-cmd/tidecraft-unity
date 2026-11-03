@@ -1,0 +1,17 @@
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/GAToUnityCallbacks.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/MacroEnd.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/MacroHeaderBegin.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/MacroSourceBegin.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGAApplication.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGAConfiguration.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGADebug.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGAEvents.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGAInput.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGASoftKeyboard.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGASoftKeyboardCallbacks.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGATypes.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UGAVersion.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UnityToGACallbacks.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UnityToGAConfigurationCallbacks.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UnityToGAKeyEventCallbacks.h
+/Users/tao/Documents/Codex/2026-11-03/wo/outputs/Tidecraft/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/UnityToGAMotionEventCallbacks.h
